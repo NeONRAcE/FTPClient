@@ -1,4 +1,11 @@
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 //todo maven, gradle, spring framework, junit, sqllite
 import java.util.Scanner;
 
@@ -17,7 +24,6 @@ public class FTPCon {
 	
 	public static void main(String[] args)
 	{
-		try{
 			System.out.println("Enter login and password:");
 			String log = scanner.next();
 			String pass = scanner.next();
@@ -26,37 +32,59 @@ public class FTPCon {
 			boolean com = scanner.hasNext();
 			while (com)
 			{
-				String comman = scanner.nextLine();
-				String[] command = comman.split(" ");
-				if (command[0].trim().equals("go"))
+				try
 				{
-					GoToDirectory(command[1]);
-				}
-				else if (command[0].trim().equals("ls"))
-				{
-					ShowFiles();
-				}
-				else if (command[0].trim().equals("back"))
-				{
-					GoBack();
-				}
-				else if (command[0].trim().equals("mkdir"))
-				{
-					CreateDir(command[1]);
-				}
-				else if (command[0].trim().equals("deldir"))
-				{
-					DeleteDir(command[1]);
-				}
-				else if (command[0].trim().equals("delfile"))
-				{
-					DeleteFile(command[1]);
+					String comman = scanner.nextLine();
+					String[] command = comman.split(" ");
+					if (command[0].trim().equals("go"))
+					{
+						GoToDirectory(command[1]);
+					}
+					else if (command[0].trim().equals("ls"))
+					{
+						ShowFiles();
+					}
+					else if (command[0].trim().equals("back"))
+					{
+						GoBack();
+					}
+					else if (command[0].trim().equals("mkdir"))
+					{
+						CreateDir(command[1]);
+					}
+					else if (command[0].trim().equals("deldir"))
+					{
+						DeleteDir(command[1]);
+					}
+					else if (command[0].trim().equals("delfile"))
+					{
+						DeleteFile(command[1]);
+					}
+					else if (command[0].trim().equals("up"))
+					{
+						UploadFile(command[1], command[2]);
+					}
+					else if (command[0].trim().equals("down"))
+					{
+						DownloadFile(command[1], command[2]);
+					}
+					else if (command[0].trim().equals("help"))
+					{
+						System.out.println("ls - show the list of files");
+						System.out.println("go - go to directory");
+						System.out.println("back - back to parent directory");
+						System.out.println("mkdir - create directory");
+						System.out.println("deldir - delete directory");
+						System.out.println("delfile - delete file");
+						System.out.println("up - upload file (path, name)");
+						System.out.println("down - download file (name, path)");
+					}
+					else System.out.println("Invalid input. Use 'help' command");
+				} catch (Exception e) {
+					System.out.println("Error");
 				}
 			}
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
+		 
 	}
 			
 	private static void DeleteFile(String path) 
@@ -150,5 +178,31 @@ public class FTPCon {
 		}
 	}
 	
+	public static void UploadFile(String localFilePath, String remoteFileName) throws IOException
+	{
+		File localFile = new File(localFilePath);
+		try {
+			InputStream is = new FileInputStream(localFile);
+			System.out.println("Start uploading first file");
+	        boolean done = ftpClient.storeFile(remoteFileName, is);
+	        is.close();
+	        if (done) 
+	        {
+	        	System.out.println("The file has been uploaded successfully.");
+	        }
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
+	public static void DownloadFile(String remoteFileName, String localFilePath) throws IOException
+	{
+        OutputStream outputStream1 = new BufferedOutputStream(new FileOutputStream(localFilePath));
+        boolean success = ftpClient.retrieveFile(remoteFileName, outputStream1);
+        outputStream1.close();
+        if (success) {
+            System.out.println("File has been downloaded successfully.");
+        }
+	}
 }
